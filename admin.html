@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Immunization Tracker</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Loading Dashboard...</p>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/2917/2917633.png" alt="Logo" class="sidebar-logo">
+            <h2>EPI Tracker</h2>
+            <p class="admin-badge"><i class="fas fa-shield-alt"></i> Admin</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li data-section="facilities">
+                    <i class="fas fa-hospital"></i>
+                    <span>Facilities</span>
+                </li>
+                <li data-section="users">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </li>
+                <li data-section="immunizations">
+                    <i class="fas fa-syringe"></i>
+                    <span>Immunizations</span>
+                </li>
+                <li data-section="children">
+                    <i class="fas fa-baby"></i>
+                    <span>Children</span>
+                </li>
+                <li data-section="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
+                </li>
+                <li data-section="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Alerts</span>
+                    <span class="badge" id="alertCount">0</span>
+                </li>
+                <li data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+                <li data-section="audit">
+                    <i class="fas fa-history"></i>
+                    <span>Audit Log</span>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="admin-info">
+                <div class="admin-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                    <p id="adminName">Admin</p>
+                    <p id="adminEmail" class="admin-email">loading...</p>
+                </div>
+            </div>
+            <button id="logoutBtn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Search across all data...">
+                </div>
+                <div class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="date-display" id="currentDate">
+                    Loading...
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Sections -->
+        <main class="content-wrapper">
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="content-section active">
+                <div class="section-header">
+                    <h2>Overview</h2>
+                    <div class="filter-controls">
+                        <select id="facilityFilter" class="filter-select" multiple>
+                            <option value="all">All Facilities</option>
+                        </select>
+                        <select id="timeFilter" class="filter-select">
+                            <option value="7days">Last 7 Days</option>
+                            <option value="30days">Last 30 Days</option>
+                            <option value="90days">Last 90 Days</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #4f46e5;">
+                            <i class="fas fa-hospital"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalFacilities">0</h3>
+                            <p>Total Facilities</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 12%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #059669;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Total Users</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 8%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dc2626;">
+                            <i class="fas fa-baby"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalChildren">0</h3>
+                            <p>Total Children</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 15%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #7c3aed;">
+                            <i class="fas fa-syringe"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalImmunizations">0</h3>
+                            <p>Immunizations</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 22%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #0891b2;">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="coverageRate">0%</h3>
+                            <p>Coverage Rate</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 5%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ea580c;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="growthRate">0%</h3>
+                            <p>Growth Rate</p>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> 3%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Immunization Trends</h3>
+                            <select id="trendFilter" class="chart-filter">
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Facility Comparison</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="facilityChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Vaccine Coverage</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="vaccineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Users by Role</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="roleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Recent Immunizations</h3>
+                        <a href="#immunizations" class="view-all">View All</a>
+                    </div>
+                    <div class="table-container">
+                        <table id="recentImmunizationsTable">
+                            <thead>
+                                <tr>
+                                    <th>Child Name</th>
+                                    <th>Vaccine</th>
+                                    <th>Facility</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Facilities Section (others are similar structure) -->
+            <section id="facilitiesSection" class="content-section">
+                <!-- Facilities content will be loaded here -->
+            </section>
+            
+            <!-- Users Section -->
+            <section id="usersSection" class="content-section">
+                <!-- Users content -->
+            </section>
+            
+            <!-- Immunizations Section -->
+            <section id="immunizationsSection" class="content-section">
+                <!-- Immunizations content -->
+            </section>
+            
+            <!-- Children Section -->
+            <section id="childrenSection" class="content-section">
+                <!-- Children content -->
+            </section>
+            
+            <!-- Reports Section -->
+            <section id="reportsSection" class="content-section">
+                <!-- Reports content -->
+            </section>
+            
+            <!-- Notifications Section -->
+            <section id="notificationsSection" class="content-section">
+                <!-- Notifications content -->
+            </section>
+            
+            <!-- Settings Section -->
+            <section id="settingsSection" class="content-section">
+                <!-- Settings content -->
+            </section>
+            
+            <!-- Audit Log Section -->
+            <section id="auditSection" class="content-section">
+                <!-- Audit log content -->
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>EPI Tracker Admin Dashboard v1.0 • © 2025 All Rights Reserved</p>
+            <p class="connection-status">
+                <i class="fas fa-wifi" id="connectionIcon"></i>
+                <span id="connectionStatus">Online</span>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+    
+    <!-- Edit Modal Template -->
+    <div id="editModal" class="modal">
+        <div class="modal-header">
+            <h3>Edit Record</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="editModalBody">
+            <!-- Dynamic content -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary modal-cancel">Cancel</button>
+            <button class="btn btn-primary modal-save">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Import Firebase and Modules -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/facilities.js"></script>
+    <script type="module" src="js/users.js"></script>
+    <script type="module" src="js/immunizations.js"></script>
+    <script type="module" src="js/children.js"></script>
+    <script type="module" src="js/reports.js"></script>
+    <script type="module" src="js/notifications.js"></script>
+    <script type="module" src="js/settings.js"></script>
+    <script type="module" src="js/audit-log.js"></script>
+    <script type="module" src="js/utils.js"></script>
+</body>
+</html>
